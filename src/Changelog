@@ -1,0 +1,789 @@
+powerpc-utils-1.2.18
+=====================================================================
+commit 1cb9a27a8751ee0f0d5d54de2e9b3e086618fc82
+Author: Philip Kelleher <pjk1939@linux.vnet.ibm.com>
+Date:   Tue Sep 10 11:15:52 2013 -0500
+
+    From: Philip Kelleher <pjk1939@linux.vnet.ibm.com>
+    
+    Added support for IBM Flash Adapter devices within the
+    snap script.
+    
+    The script will check whether or not IBM Flash
+    Adapters are currently loaded in the system. If so, the
+    script will check them. If not, the script will do its
+    normal operations.
+    
+    It will, then, check whether or not the rsxx-utils are
+    installed on the system. If they are installed, the rs_cardreport
+    application will be ran. If not, the script will print out
+    a warning stating that IBM Flash Adapter information could
+    not be gathered. The script will continue normally either
+    way.
+    
+    Signed-off-by: Philip J Kelleher <pjk1939@linux.vnet.ibm.com>
+
+commit 07165e5854b928d007ea2af1542a64c8d07c1336
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Sep 10 11:13:49 2013 -0500
+
+    Allow frequency sampling for given time periods.
+    
+    This patch adds an option [-t <time> ] for the --frequency action in
+    ppc64_cpu so that users can specify the period in seconds over which
+    they want to do frequency sampling.
+    
+    Signed-off-by:Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit b2fb611e87ebdb27a6b923cf1ac076eb364870b8
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Sep 10 11:12:19 2013 -0500
+
+    Acquire the dr_lock earlier in dr operations.
+    
+    The dr_lock used to serialize dr operations should be taken earlier.
+    The current code takes the lock after opening the log file, this can
+    lead to having multiple instances of drmgr writing to the file at the
+    same time.
+    
+    To do this, the patch moves the taking and releasing of the dr_lock into
+    the dr_init and dr_fini routines as well as cleans up main() to make
+    unlocking easier to handle.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit d6a24ab18d9e48aa90712c4dcda69425f246287b
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Sep 10 10:46:33 2013 -0500
+
+    Update the drc-type descriptions for PCI-e Gen 3/4 slots
+    
+    This patch adds description strings for the newly added drc types
+    defined in the PAPR. Additionally, this initializes the description
+    string returned by node_type() to "Unknown", otherwise we could
+    return an uninitialized string.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit 7b8150e442df2f41546cb3925019c9fcb8b5b59e
+Author: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+Date:   Tue Sep 10 10:44:43 2013 -0500
+
+    Commit 8182dda resulted in excluding COPYRIGHT file from
+    gzip (make dist-gzip). This causes rpmbuild to fail.
+    
+    Adding COPYRIGHT file to EXTRA_DIST.
+    
+    Signed-off-by: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+
+commit affd141c66cdd46a3a25ed7ad66e5c8096979b34
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Tue Sep 10 10:42:54 2013 -0500
+
+    Handle addition of timestamp information in the oops header. New format
+    oops header has version in the same place as length in the old header.
+    Version is assigned a value greater than oops partition size (illegal length)
+    in kernel. If unzip_partition finds an illegal length, it will understand its
+    new style header and parse the information accordingly. With this --unzip
+    option will work with both old and new-style headers.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+
+commit 06f85125973d87c12dd297dce51e5e5cf4d91f46
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Jun 25 08:14:53 2013 -0500
+
+    drmgr: Post processing for PCI replace
+    
+    During a PCI replace operation we can hit scenarios where the adapter
+    was not able to completely clean everything up before it is removed.
+    Such a scenario would be an adapter completely failing or just being
+    pulled from its slot while the system is up.
+    
+    In these cases we need to add an additional remove and add to the flow
+    of operations in the replace code path. This allows us to add the
+    adapter back to the system which gives us enough to do a complete
+    remove and clean everything up, and then add the adapter again.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit 04c9a8467022f75843e9a564f3b28e132544b9cc
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Jun 25 08:14:06 2013 -0500
+
+    drmgr: Ensure devices are present during pci replacement
+    
+    In some instance during a PCI replacement operations (drmgr -c pci -R)
+    the adapter we are adding does not immediately appear. In these cases
+    a small wait is required for the adapter to appear.
+    
+    This patch adds a small loop checking for the adapter's presence before
+    continuing the replace operation. The update also adds an option for
+    users to exit the operation if the adapter does not appear.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit ff981e0e652364d9b3a3262d315d87e26c772135
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Jun 25 08:12:40 2013 -0500
+
+    drmgr: Check for rpadlpar_io module
+    
+    When attempting to do slot or phb DLPAR we need to have the rpadlpar_io
+    kernel module loaded. This patch updates the check made for slot and
+    phb DLPAR capabilities to also load the module if it is not present.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit 8182dda83cae0d81b7c12c745ccae1932b0a52ac
+Author: Jeremy Kerr <jk@ozlabs.org>
+Date:   Tue Jun 25 08:11:10 2013 -0500
+
+    Makefile: Don't install docs twice
+    
+    Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+
+commit 288989572bcfdc272bce45e8600e7ce293184a3b
+Author: Jeremy Kerr <jk@ozlabs.org>
+Date:   Tue Jun 25 08:09:31 2013 -0500
+
+    nvram: Allow deleting variables
+    
+    nvram --update-config myvar= to delete a variable.
+    
+    Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+
+commit c4ea6a1cbf3d3be8b47132b3e2c6bcad638e3ef6
+Author: Jeremy Kerr <jk@ozlabs.org>
+Date:   Tue Jun 25 08:08:01 2013 -0500
+
+    nvram: Write complete nvram data
+    
+    write() may not write the entire buffer we hand it. In this case, don't
+    fail, but advance along our buffer.
+    
+    Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+
+commit 1f7112d09affbf29bb354d7de3587fa2310a564d
+Author: Jeremy Kerr <jk@ozlabs.org>
+Date:   Tue Jun 25 08:07:11 2013 -0500
+
+    nvram: Allow new parameters to be added
+    
+    Currently, we exit from update_of_config_var if we don't see an existing
+    variable. This means we can't add new variables.
+    
+    Don't do this.
+    
+    Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+
+commit e2cc2e0e14f543a6b7e241d5a3951808eb829290
+Author: Jeremy Kerr <jk@ozlabs.org>
+Date:   Tue Jun 25 08:06:16 2013 -0500
+
+    nvram: Check --update-config variables for correct format
+    
+    Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+
+commit 976dbe9bb7b01b135cac3e7bbd1dce0cdc88636a
+Author: Jeremy Kerr <jk@ozlabs.org>
+Date:   Tue Jun 25 08:05:21 2013 -0500
+
+    nvram: Allow zero-terminated output
+    
+    Currently, there's no way to accurately parse the outout of nvram
+    --print-config: properties may contain a newline, which we can't
+    distinguish from the end-of-property token.
+    
+    This change adds a --zero/-0 option to terminate config pairs with a
+    NUL character instead.
+    
+    Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+
+commit 8d0fdf663e2a99b17bf8b001c59fb1cffaf7f185
+Author: Jeremy Kerr <jk@ozlabs.org>
+Date:   Tue Jun 25 08:03:55 2013 -0500
+
+    nvram: Don't use device tree for nvram size
+    
+    We can query the nvram size with a seek(), which means we don't need to
+    lookup in the device tree.
+    
+    Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+
+powerpc-utils-1.2.17
+=====================================================================
+commit f54dc396cba599b1dc81892348b5db92743c9ff5
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Jun 4 06:17:07 2013 -0500
+
+    The 'Desired Variable Capacity Weight' field in the output from lparstat -i
+    is reported twice. This patch removes one of them so that it is only reporte
+d
+    once.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit e23f326d6c811bd923af97b7ce985961a4e42040
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Wed May 29 21:15:20 2013 -0500
+
+    This patch does a lot of cleanup of the indentation in places to use 4
+    spaces instead of tabs.  Note, this is not really what is preferred but
+    what is used by this script, this change tries to make indentation
+    consistent in the script.
+    
+    This patch also makes sure that any called commands redirect their
+    error messages to /dev/null and makes sure that bootlist error messages
+    are written to stderr.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit afd0a23bc1fe423ef53c914b88dc9c831a292c24
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Wed May 29 21:12:41 2013 -0500
+
+    The bootlist command uses the ofpathname command to convert between
+    logical device names and Open Firmware device path names. The current
+    use of ofpathname does not correctly interpret the output and whether
+    the ofpathname call succeeds or not.
+    
+    This patch updates the calling of ofpathname for the entire bootlist
+    script to properly handle the return values and success.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit 7d036c414f607c84eec890cf6343df2ce1f8dedc
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Wed May 29 21:09:04 2013 -0500
+
+    The man page and usages statement incorrectly specify the -m option
+    as the only required option. One can run the command and only specify
+    the -m option, but this results in the script doing nothing.
+    
+    This patch updates the usage statement and man page to better specify
+    the options that need to be specified when using the bootlist command.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit e5240088a6c15d9220f7c373b1bd735295a37377
+Author: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
+Date:   Wed May 29 21:07:12 2013 -0500
+
+    The call to do_update on a remove property doesn't account for the null
+    terminator in the length and results in the last character of the
+    property name being truncated in the log.
+    
+    Signed-off-by: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
+
+commit 5a803bf7232929d09ecb86d8f3c32c74dfd41755
+Author: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
+Date:   Wed May 29 21:06:02 2013 -0500
+
+    The say() logging function allocates a static 256 byte buffer for
+    messages. Messages passed to say() larger than 256 bytes result in a
+    truncated message followed by garbage from past the end of the buffer being
+    written to the log file. This is a result of using the return value of
+    vsnprintf as the length input to the write function. Despite only
+    writing no more than 256 bytes (including the trailing \0) to the buffer
+    the return value of vsnprintf is actually the total number of bytes (not
+    including the trailing \0) that would have been written had the buffer
+    been long enough.
+    
+    This patch checks for truncation, labels the end of the message
+    stating as much, and corrects the message length passed to write.
+    
+    Signed-off-by: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
+
+commit 89e87c36ac6c74223054819e5a77b57b3acfaef1
+Author: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
+Date:   Wed May 29 21:04:44 2013 -0500
+
+    This patch corrects the parsing of the work area buffer returned by
+    ibm,update-properties. The first property descriptor is slightly
+    different from the rest of the properties returned and needs to be
+    handled accordingly.
+    
+    Signed-off-by: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
+
+commit 8d818e2bd9f67aa5fad67dbe92fc294fcf52c333
+Author: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+Date:   Fri May 17 13:30:11 2013 -0500
+
+    Rewrote update_flash man page. Also included below details:
+      - Explaination of when temporary image is committed to permanent
+        side during firmware update.
+      - Information on -s and -n option.
+      - Added exit status.
+      - Added few examples.
+    
+    Requested-by: Paul Clarke <pc@us.ibm.com>
+    Signed-off-by: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+
+commit 32581ebc8413cc2064ca25a27833d91708c72616
+Author: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+Date:   Fri May 17 13:29:27 2013 -0500
+
+    Add new return code to check firmware entitlement expiry.
+    Also display firmware GA date and system firmware entitlement
+    expiry date, when we try to flash expired image (image GA date
+    is beyond system entitlement date).
+    
+    Upper layer software wants common exit code across OS when
+    entitlement expires. So I have added new exit code (E_WRNTY).
+    
+    Signed-off-by: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+    Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+
+commit 7d2762892d3c28d3264dd86baf43d6ed0857f6e3
+Author: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+Date:   Fri May 17 13:28:35 2013 -0500
+
+    If machine supports two image areas and machine is running from
+    temporary side of image, then attempt to update flash image
+    may automatically commit temporary side of image to Permanent
+    side.
+    
+    This patch introduces new flag to stop auto overwrite.
+    
+    Requested-by: Paul Clarke <pc@us.ibm.com>
+    Signed-off-by: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+
+commit 0f9409e361e507ccbaf81f72bab3b27862723060
+Author: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+Date:   Fri May 17 13:27:46 2013 -0500
+
+    Fixing output display issue.
+    
+    Sample output without this patch :
+    ---------------------------------
+    Projected Flash Update Results:
+    Current T Image: 20131015
+    Current P Image:
+    New T Image:     20131001
+    New P Image:
+    Flash image ready...rebooting the system...
+    
+    Sample output with this patch :
+    ------------------------------
+    Projected Flash Update Results:
+    Current T Image: ZL780_211
+    Current P Image: ZL780_111
+    New T Image:     ZL780_211
+    New P Image:     ZL780_211
+    Flash image ready...rebooting the system...
+    
+    Signed-off-by: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+
+commit 0deb9660cffb5b313605abfeb6a2efee1a92effd
+Author: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
+Date:   Fri May 17 13:22:37 2013 -0500
+
+    Timing out memory remove operations before fulfilling the request can
+    result in attempts to unsuccesfully remove the same LMBs on repeated
+    requests. This patch implements a simple shuffle algorithm to randomize
+    the LMB list.
+    
+    Signed-off-by: Tyrel Datwyler <tyreld@linux.vnet.ibm.com>
+
+commit f247375409a7beece8271833f8a924f3075086fc
+Author: Robert Jennings <rcj@linux.vnet.ibm.com>
+Date:   Fri May 17 13:18:23 2013 -0500
+
+    This patch changes logic around quanity requested and # sections removable
+    for memory remove.  Previously, if you had requested X but some non-zero
+    quantify less than X were available it would bail.  Now it will attempt
+    to remove as many as are available.  For this case it is still considered
+    a partial success and a non-zero (error) return code is given so that
+    output is displayed on the management console.
+    
+    Messages for the memory remove code path are impoved and some message
+    logging levels are changed.  Messages now indicate situations that are
+    really bugs and should be looked at by support.  For those cases it also
+    points the user to /var/log/drmgr for the debug logs.
+    
+    Here are output examples for the different levels:
+    
+    ERROR level (1):
+    HSCL2932 The dynamic removal of memory resources failed: The operating syste
+m prevented all of the requested memory from being removed. Amount of memory rem
+oved: 0 MB of 256 MB. The detailed output of the OS operation follows:
+    Validating Memory DLPAR capability...yes.
+    Removed 0 of 1 requested lmb(s)
+    Unable to hotplug remove the remaining 1 lmb(s)
+    
+    INFO level (3):
+    HSCL2932 The dynamic removal of memory resources failed: The operating syste
+m prevented all of the requested memory from being removed. Amount of memory rem
+oved: 0 MB of 1024 MB. The detailed output of the OS operation follows:
+    Validating Memory DLPAR capability...yes.
+    Maximum of 24 LMBs
+    Found 16 LMBs currently allocated
+    Only 2 LMBs are currently candidates for removal.
+    Attempting to offline LMB15.
+    Could not offline LMB15 at this time.
+    Attempting to offline LMB4.
+    Could not offline LMB4 at this time.
+    Removed 0 of 4 requested lmb(s)
+    Unable to hotplug remove the remaining 4 lmb(s)
+    
+    DEBUG level (4):
+    HSCL2932 The dynamic removal of memory resources failed: The operating syste
+m prevented all of the requested memory from being removed. Amount of memory rem
+oved: 0 MB of 1024 MB. The detailed output of the OS operation follows:
+    
+    drmgr: -r -c mem -q 4 -w 5 -d 4
+    Validating Memory DLPAR capability...yes.
+    Maximum of 24 LMBs
+    Found 16 LMBs currently allocated
+    AMS ballooning is not active
+    Only 2 LMBs are currently candidates for removal.
+    Attempting removal of 2 lmbs
+    AMS ballooning is not active
+    Found available LMB, LMB15, drc index 0x8000000e
+    Attempting to offline LMB15.
+    14:47:56: Marking /sys/devices/system/memory/memory224 offline
+    14:47:56: Could not offline /sys/devices/system/memory/memory224.
+    Could not offline LMB15 at this time.
+    AMS ballooning is not active
+    Found available LMB, LMB4, drc index 0x80000003
+    Attempting to offline LMB4.
+    14:47:57: Marking /sys/devices/system/memory/memory48 offline
+    14:47:57: Could not offline /sys/devices/system/memory/memory48.
+    Could not offline LMB4 at this time.
+    AMS ballooning is not active
+    Removed 0 of 4 requested lmb(s)
+    Unable to hotplug remove the remaining 4 lmb(s)
+    Rotating logs...
+    
+    Signed-off-by: Robert Jennings <rcj@linux.vnet.ibm.com>
+
+commit 43b90cbd9d5c196e5a18151fb0c9ddaf944bf604
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Fri May 17 13:16:42 2013 -0500
+
+    The output level should check for a level less than or equal to the desired
+    output level. The current check is wrong and we always get all of the output
+.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+    Acked-by: Robert Jennings <rcj@linux.vnet.ibm.com>
+
+commit 0fd2eff3a908566132e845d606204192aae3ba92
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Fri May 17 13:15:31 2013 -0500
+
+    The code to see if AMS ballooning is active has the side affect of outputtin
+g
+    a message every time it is checked, which is often. This patch updates drmgr
+    so that the check for AMS ballooning and its message are only done once the
+    first time it is checked. Any subsequent checks just return the previous
+    results.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit 69639d89d4f31df6591da4649627a8374252f90a
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Fri May 17 13:13:51 2013 -0500
+
+    The ppc64_cpu command incorrectly reports the smt snooze delay value of
+    -1 as an error in that the value is inconsistent across the cpus on the
+    system. This patch updates the command to properly this value by
+    separating the tracking of inconsistent values from the return codes from
+    retrieving the value.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+    Reported-and-tested-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+
+commit 38b53c903b1be01f177049a27cb77acc44828aef
+Merge: 2857828 1d06f70
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Fri May 17 08:44:01 2013 -0500
+
+    Merge branch 'master' of ssh://nfont@powerpc-utils.git.sourceforge.net/gitro
+ot/powerpc-utils/powerpc-utils
+
+commit 2857828cc6bfdb612c5b249be86692e4ac03d35f
+Author: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Date:   Tue Apr 23 08:46:10 2013 -0500
+
+    kernel commit 404e32e4a8f68d2, supports lower minimum entitlement
+    for virtual processors such as 0.05 processing units. This patch
+    modifies get_percent_entry() to support these lower values.
+    
+    Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+
+commit 1d06f7091ada23c8efa49b9af5b35e3b5e6b3547
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Apr 23 08:46:10 2013 -0500
+
+    kernel commit 404e32e4a8f68d2, supports lower minimum entitlement
+    for virtual processors such as 0.05 processing units. This patch
+    modifies get_percent_entry() to support these lower values.
+    
+    Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+
+commit 7ad241bf127e3e0787140f4712f7f18be8f6f11d
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Apr 23 08:43:46 2013 -0500
+
+    The drmgr command has always taken the -w option to specify
+    how long to try an operation before timing out. Historically
+    this option was always ignored, and then at some point used to
+    time out when trying to acquire the drmgr lock.
+    
+    As we see larger systems coming around we need to start honoring
+    this option so we do not consume unneeded time going through every
+    possible LMB and CPU on the system.
+    
+    This patch saves the timeout specified on the command line (-w)
+    and then checks it while trying to take the drmgr lock and before
+    each CPU/LMB it tries to add/remove. If no timeout is specified
+    then drmgr will never timeout.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+powerpc-utils-1.2.16
+=====================================================================
+commit 0c358d8d7391f99d02315786871735f73eba8af1
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Fri Feb 1 17:57:47 2013 -0600
+
+    The drmgr command does not currently allow users to specify the drc index of
+    the resource they wish to add/remove. This patch updates the drmgr command s
+o
+    that users can specify either a drc name or a drc index with the -s option.
+    
+    This functionality is needed for the upcoming userspace handling of PRRN RTA
+S
+    events. The rtas_errd will already have the drc index for the resources it
+    needs, adding the capability to parse drc names from the device tree is not
+    supported in rtas_errd though.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit 91459f3188bb9db0ac8da23133d7330520520728
+Author: Robert Jennings <rcj@linux.vnet.ibm.com>
+Date:   Fri Feb 1 17:56:20 2013 -0600
+
+    Update the man page for update_flash which had an out of date link
+    to instructions for resetting a managed system to a non-partitioned
+    configuration.
+    
+    Also fix typos in the man page.
+    
+    Signed-off-by: Robert Jennings<rcj@linux.vnet.ibm.com>
+
+commit 837eaff650ab19784b6b04d2d14fb29c966a485f
+Author: Nishanth Aravamudan <nacc@us.ibm.com>
+Date:   Fri Feb 1 17:42:53 2013 -0600
+
+    The upstream kernel has a feature in the pseries PCI code called DDW
+    that inserts TCEs transparently to device drivers. The upstream kernel
+    was recently sent a fix for DLPAR that ensured those TCEs would get
+    cleared upon DLPAR remove (http://patchwork.ozlabs.org/patch/213735/),
+    but for it to work, we need a corresponding change to drmgr for, at
+    least, PHB remove, so that the notifier chain has fired before we call
+    into the slot isolate code. Without such a change, there is no way to
+    ensure the DDW TCEs are cleared, and the DLPAR will always fail.
+    
+    Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+
+commit 85325c113104602a257a0f7cf3da0dbd5d222d56
+Author: Michael Ellerman <michael@ellerman.id.au>
+Date:   Mon Jan 7 20:42:01 2013 -0600
+
+    Add and use dt_swap_int() to byte swap on little endian.
+    
+    Also declare buf as unsigned char, so that we don't sign extend when
+    printing values from it.
+    
+    Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+    Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+
+
+powerpc-utils-1.2.15
+=====================================================================
+commit 3f31d1980331cb72d3328269f27de4c8d3132178
+Author: Anton Blanchard <anton@samba.org>
+Date:   Tue Dec 18 12:10:20 2012 -0600
+
+    The frequency determination for a system can fail if we can not open
+    enough files to make the determination. This patch pre-emptively
+    updates the rlimit to ensure we can open all the files necessary.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit 8d8e98514aeae82966123eed1a4f5c79e2f1a758
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Tue Dec 18 12:02:48 2012 -0600
+
+    The latest firmware levels allow for setting different power savings
+    modes. This updates the ppc64_cpu command to display the power savings
+    mode that is currently set for the partition, or for the partition
+    and the system if they are different, when displaying the results
+    for the --frequency option.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+commit e22d290b980dedbe4e6d297e0a1f4c0517e7f9db
+Author: Gustavo Luiz Duarte <gustavold@linux.vnet.ibm.com>
+Date:   Thu Dec 13 09:26:49 2012 -0600
+
+    Add support to convert device-mapper multipath device names to OFW device pa
+th.
+    As multipath devices are seen by the OFW as multiple (equivalent) devices, o
+nly
+    one of them is printed so we don't break user scripts expecting one line
+    output. We can add an option later to print all the paths to the multipath
+    device.
+    
+    Signed-off-by: Gustavo Luiz Duarte <gustavold@linux.vnet.ibm.com>
+
+commit 3eacc075d455b91a23a2280ee726fd3d236abf77
+Author: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+Date:   Wed Dec 12 10:08:38 2012 -0600
+
+    We have introduced full fledged Light Path Diagnostics support
+    on PowerLinux. To bring all Light Path Diagnostics related
+    code into common tree and re-use common functionalities across
+    tools, we have re-implemented usysident/usysattn commands. Light
+    Path Diagnostics including new implentation of usysident/usysattn
+    will be hosted in PowerLinux diagnostic package (ppc64-diag).
+    
+    ppc64-diag source:
+      http://sourceforge.net/projects/linux-diag/files/ppc64-diag/
+    
+    This will introduce package conflict between ppc64-diag and
+    powerpc-utils. To avoid the conflict we need to deprecate the
+    usysident/usysattn commands from powerpc-utils.
+    
+    This patch deprecates usysident/usysattn commands.
+    
+    Signed-off-by: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
+
+commit 588df55fa1e0c0061776aa4338512a4b56614b93
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Wed Dec 12 09:24:17 2012 -0600
+
+    Update the values reported in the ppc64_cpu --frequency output to
+    be displayed to three digits of precision instead of two.
+    
+    This update to help with test teams that are making this update to their
+    code base already so as to get this precision in the reporting.
+    
+    Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+
+powerpc-utils-1.2.14
+=====================================================================
+commit 54b295ff2ec131d173ebf3913565adbe4a5f0c2f
+Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Date:   Wed Oct 17 13:47:49 2012 -0400
+
+    The latest kernels allow for users to get/set the DSCR value on a per proces
+    This allows for more refined DSCR setting in applications. This is implement
+    by using the ptrace peekuser capabilites in the kernel and simply doing a
+    ptrace attach and peek from the ppc64_cpu command. Note: this does not actua
+    stop the process we are attaching to while under ptrace control.
+    
+    The patch does a little more than just adding this functionality since the
+    --dscr commad now takes an optional -p <pid> option. This required an
+    updated to the command parsing code to allow this.
+    
+    Signed-off-by: Nathan Fontenot <nfont@liunux.vnet.ibm.com>
+
+commit 90029c93af26f01ef37624fd9d27809d6734f5f7
+Author: Santiago Leon <santil@linux.vnet.ibm.com>
+Date:   Wed Oct 17 13:35:14 2012 -0400
+
+    Includes the status field for Ethernet devices.  This field is necessary for
+    the End-to-End Virtual Device View feature.  The field is blindly set to 1
+    because we're trying to mimic AIX's lsdevinfo behavior that always sets it t
+    unless the device doesn't have a driver, which can't happen in Linux.
+    
+    Signed-off-by: Santiago Leon <santil@linux.vnet.ibm.com>
+
+powerpc-utils-1.2.13
+=====================================================================
+commit 361dcc6ee5ca8a41b311b0c82c88d4633c884b2a
+Author: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+Date:   Thu Aug 16 08:31:59 2012 -0500
+
+    Adding more power specific files/commands to snap.
+    
+    Signed-off-by: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+
+commit 5d1fcd0a882f1e5f0b569b1dab29ee5f55801583
+Author: Breno Leitao <brenohl@br.ibm.com>
+Date:   Thu Jun 14 09:31:47 2012 -0500
+
+    There are two parameters on lparstat, count and interval, that were
+    undocumented on the man page. This patch adds these parameters to the
+    option section in the lparstat manpage.
+    
+    Signed-off-by: Breno Leitao <brenohl@br.ibm.com>
+
+commit 7fb183b52bc01e839529f1ac669fc488d3a047ac
+Author: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+Date:   Thu Jun 14 09:24:44 2012 -0500
+
+    snap uses temporary directory to gather system data (files and command
+    output), and finally creates compressed output file in tar or tar.gz
+    format. We do not need to keep the temporary directory.
+    
+    This patch deletes the temprory directory used by snap.
+    
+    Signed-off-by: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+
+commit 8666fe0e239266cff9cfc41907018913877bb9de
+Author: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+Date:   Thu Jun 14 09:24:08 2012 -0500
+
+    Currently by default snap output is stored in snap.tar.gz file. This
+    makes difficult to identify when the snap output was collected.
+    
+    This patch introduces new option -t which adds hostname adds and
+    system time to output filename. With -t output filename will be
+    snap-<hostname>-<systemtime>.tar.gz. This patch also creates
+    snap_commands directory inside $outdir to save output of commands
+    executed by snap.
+    
+    Signed-off-by: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+
+commit 76f59b3090b6a1d5718206026f915b92aaa6fddd
+Author: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+Date:   Thu Jun 14 09:22:52 2012 -0500
+
+    Currently snap does not validate the directory name and output filename pass
+ed
+    with snap options -d and -o respectively. If we pass existing directory whic
+h
+    contains files/other subdirectories with -d option, while creating the outpu
+t
+    (snap.tar.gz) it includes all those files which is wrong. If we pass existin
+g
+    filename with -o option it will override existing file.
+    
+    This patch fixes above mentioned issue by validating input parameter
+    passed to snap command.
+    
+    Signed-off-by: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+
+commit fe4836e3d8a6f466e2321e6beaf3bfe5d8fab262
+Author: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+Date:   Thu Jun 14 09:22:19 2012 -0500
+
+    Restrict the unsafe constructs by using "use strict" perl pragma
+    and hence make snap code better.
+    
+    Signed-off-by: Vasant Hegde <vahegde1@linux.vnet.ibm.com>
+
+commit c600f2910674f2afb8059abbe3addb593828a8cd
+Author: Santiago Leon <santil@linux.vnet.ibm.com>
+Date:   Mon Apr 16 08:49:18 2012 -0500
+
+    Adds support for physical ethernet devices so that the HMCs end-to-end
+    virtual device view can show SR-IOV VFs. Moves common virtual and physical
+    ethernet code to show_eth() function
+    
+    Signed-off-by: Santiago Leon <santil@linux.vnet.ibm.com>

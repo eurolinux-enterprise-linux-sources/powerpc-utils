@@ -1,0 +1,73 @@
+diff -up powerpc-utils-1.2.18/src/drmgr/dr.h.1074629 powerpc-utils-1.2.18/src/drmgr/dr.h
+--- powerpc-utils-1.2.18/src/drmgr/dr.h.1074629	2014-03-12 15:17:27.503213476 +0100
++++ powerpc-utils-1.2.18/src/drmgr/dr.h	2014-03-12 15:17:32.007213432 +0100
+@@ -63,8 +63,10 @@ struct options {
+ 
+ 	int     no_ident;     /* used in drslot_chrp_pci                      */
+ 	int 	timeout;      /* time (in seconds) to try operation           */
++	
+ 	char   *usr_drc_name; /* pointer to user-specified drc-name
+ 	                       * of resource                                  */
++	uint32_t        usr_drc_index;
+ 	int     noprompt;     /* 1 = do not prompt user for input, assume yes */
+ 	unsigned int quantity;  /* number of resources                        */
+ 	char	*ctype;
+diff -up powerpc-utils-1.2.18/src/drmgr/drmgr.c.1074629 powerpc-utils-1.2.18/src/drmgr/drmgr.c
+diff -up powerpc-utils-1.2.18/src/drmgr/drslot_chrp_pci.c.1074629 powerpc-utils-1.2.18/src/drmgr/drslot_chrp_pci.c
+--- powerpc-utils-1.2.18/src/drmgr/drslot_chrp_pci.c.1074629	2013-09-10 17:39:51.000000000 +0200
++++ powerpc-utils-1.2.18/src/drmgr/drslot_chrp_pci.c	2014-03-12 15:33:12.861204251 +0100
+@@ -96,6 +96,27 @@ identify_slot(struct dr_node *node)
+ 		return (USER_QUIT);
+ }
+ 
++static char *
++find_drc_name(uint32_t drc_index, struct dr_node *all_nodes)
++{
++        struct dr_node *node;
++
++        node = all_nodes;
++        while (node != NULL) {
++                say(DEBUG, "%#x =? %#x\n", drc_index, node->drc_index);
++                if (node->drc_index == drc_index) {
++                        say(DEBUG, "Found drc_name %s\n", node->drc_name);
++                        return node->drc_name;
++                } else
++                        node = node->next;
++        }
++
++        if ((node == NULL))
++                say(ERROR, "Could not find drc_name for index %#x\n", drc_index);
++
++        return NULL;
++}
++
+ /**
+  * find_slot
+  *
+@@ -797,8 +818,14 @@ valid_pci_options(struct options *opts)
+ 		return -1;
+ 	}
+ 
+-	if (opts->usr_drc_name == NULL) {
+-		say(ERROR, "A drc name must be specified\n");
++	/* The -s option can specify a drc name or drc index */
++	if (!strncmp(opts->usr_drc_name, "0x", 2)) {
++		opts->usr_drc_index = strtoul(opts->usr_drc_name, NULL, 16);
++		opts->usr_drc_name = NULL;
++	}
++
++	if (opts->usr_drc_name == NULL && !opts->usr_drc_index) {
++		say(ERROR, "A drc name or index must be specified\n");
+ 		return -1;
+ 	}
+ 
+@@ -821,6 +848,9 @@ drslot_chrp_pci(struct options *opts)
+ 	print_slots_list(all_nodes);
+ #endif
+ 
++        if (!opts->usr_drc_name)
++                opts->usr_drc_name = find_drc_name(opts->usr_drc_index, all_nodes);
++
+ 	switch (opts->action) {
+ 	    case ADD:
+ 		rc = do_add(opts, all_nodes);

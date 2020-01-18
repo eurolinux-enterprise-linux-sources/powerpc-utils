@@ -1,0 +1,16 @@
+diff -up powerpc-utils-1.2.18/src/drmgr/drmgr.c.1074635 powerpc-utils-1.2.18/src/drmgr/drmgr.c
+--- powerpc-utils-1.2.18/src/drmgr/drmgr.c.1074635	2014-03-12 14:54:41.633226805 +0100
++++ powerpc-utils-1.2.18/src/drmgr/drmgr.c	2014-03-12 14:55:52.141226117 +0100
+@@ -334,10 +334,9 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	/* Validate this platform */
+-	rc = valid_platform("chrp");
+-	if (rc) {
++	if (!valid_platform("chrp")) {
+ 		dr_fini();
+-		return rc;
++		return -1;
+ 	}
+ 
+ 	set_timeout(opts.timeout);

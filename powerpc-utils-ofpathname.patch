@@ -1,0 +1,38 @@
+--- a/scripts/ofpathname
++++ b/scripts/ofpathname
+@@ -339,6 +339,7 @@
+ 			l2of_scsi
+ 		    fi ;;
+         hd*)        l2of_ide ;;
++        vd*)        l2of_vd ;;
+         fd*)        echo "no fd support yet" ;;
+         dm-*)
+                     DEVNAME=`get_slave $DEVICE`
+@@ -405,6 +406,27 @@
+ }
+ 
+ #
++# l2of_vd
++# Conversion routine for logical => OF path of virtio block devices
++#
++l2of_vd()
++{
++    cd /sys/block/$DEVICE
++    local link=`get_link "device"`
++    if [[ -z $link ]]; then
++        err $ERR_NO_SYSFS_DEVINFO
++    fi
++    cd $link
++
++    goto_dir $PWD "devspec"
++
++    OF_PATH=`$CAT $PWD/devspec`
++    if [[ -z $OF_PATH ]]; then
++        err $ERR_NO_OFPATH
++    fi
++}
++
++#
+ # l2of_ethernet
+ # Conversion routine for logical => OF path of ethernet devices
+ #

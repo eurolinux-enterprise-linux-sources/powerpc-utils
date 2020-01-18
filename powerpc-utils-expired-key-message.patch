@@ -1,0 +1,12 @@
+diff -up powerpc-utils-1.2.18/scripts/update_flash.1071555 powerpc-utils-1.2.18/scripts/update_flash
+--- powerpc-utils-1.2.18/scripts/update_flash.1071555	2014-03-10 17:13:07.387740980 +0100
++++ powerpc-utils-1.2.18/scripts/update_flash	2014-03-10 17:14:13.676740334 +0100
+@@ -164,6 +164,8 @@ function echo_entitlement_expiry_date {
+ 		echo "UNKNOWN."
+ 	fi
+ 	echo ""
++	echo "Please go to http://www.ibm.com/servers/eserver/ess to obtain "
++	echo "a replacement update access key."
+ }
+ 
+ function echo_validate_return_status {

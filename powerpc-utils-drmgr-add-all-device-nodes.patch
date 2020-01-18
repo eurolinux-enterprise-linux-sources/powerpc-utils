@@ -1,0 +1,11 @@
+--- powerpc-utils-1.2.16/src/drmgr/drmig_chrp_pmig.c.orig	2013-07-11 02:51:38.000000000 +0100
++++ powerpc-utils-1.2.16/src/drmgr/drmig_chrp_pmig.c	2013-07-17 02:33:17.000000000 +0100
+@@ -423,7 +423,7 @@ add_nodes(unsigned int *op, unsigned int
+ {
+ 	unsigned int i, pphandle, drcindex;
+ 
+-	for (i = 0; i < n; i += 2) {
++	for (i = 0; i < n; i++) {
+ 		pphandle = *op++;
+ 		drcindex = *op++;
+ 		say(DEBUG, "Add node with parent phandle %8.8x and drc index "

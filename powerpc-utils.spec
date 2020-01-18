@@ -1,32 +1,44 @@
 Name:           powerpc-utils
 Version:        1.2.18
-Release:        1%{?dist}
+Release:        9%{?dist}
 Summary:        Utilities for PowerPC platforms
-
 Group:          System Environment/Base
 License:        CPL
 URL:            http://sourceforge.net/projects/%{name}/
+
 Source0:        http://prdownloads.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 Source1:        nvsetenv
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires:  zlib-devel doxygen automake librtas-devel libservicelog-devel >= 1.0.1-2
-
-# should be fixed - libservicelog is not right name
-Requires:       libservicelog bc which
-ExclusiveArch:  ppc ppc64
 
 # This hack is needed only for platforms with autoconf < 2.63
 Patch0:		powerpc-utils-autoconf.patch
 Patch1:		powerpc-utils-1.2.15-man.patch
+Patch2:		powerpc-utils-update-fw-entitlement-message-terminology.patch
+Patch3:		powerpc-utils-attr-packed.patch
+Patch4:		powerpc-utils-ofpathname.patch
+Patch5:		powerpc-utils-snap-cmd-get-hung.patch
+Patch6:		powerpc-utils-ebusy_check.patch
+Patch7:		powerpc-utils-cap_retval.patch
+Patch8:		powerpc-utils-drmgr-add-all-device-nodes.patch
+Patch9:		powerpc-utils-P8_sysident.patch
+Patch10:	powerpc-utils-expired-key-message.patch
+Patch11:	powerpc-utils-LPM-migration.patch
+Patch12:	powerpc-utils-valid_platform.patch
+
+ExclusiveArch:  ppc ppc64
 
 # This is done before release of F12
 Obsoletes:      powerpc-utils-papr < 1.1.6-3
 Provides:       powerpc-utils-papr = 1.1.6-3
 
+# should be fixed - libservicelog is not right name
+Requires:       libservicelog bc which
 Requires:       powerpc-utils-python
+BuildRequires:  zlib-devel doxygen automake librtas-devel libservicelog-devel >= 1.0.1-2
+
 
 %description
 Utilities for PowerPC platforms.
+
 
 %prep
 %setup -q
@@ -36,6 +48,18 @@ Utilities for PowerPC platforms.
 %patch0 -p1 -b .aconf
 %endif
 %patch1 -p1 -b .man
+%patch2 -p1 -b .term
+%patch3 -p1 -b .pkd
+%patch4 -p1 -b .ofp
+%patch5 -p1 -b .snp
+%patch6 -p1 -b .ebusy
+%patch7 -p1 -b .capret
+%patch8 -p1 -b .alldev
+%patch9 -p1 -b .P8
+%patch10 -p1 -b .1071555
+%patch11 -p1 -b .1074629
+%patch12 -p1 -b .1074635
+
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
@@ -44,7 +68,6 @@ make %{?_smp_mflags}
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT FILES= RCSCRIPTS=
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT%{_sbindir}/nvsetenv
 
@@ -60,11 +83,8 @@ rm -rf $RPM_BUILD_ROOT/etc/init.d/ibmvscsis.sh $RPM_BUILD_ROOT/usr/sbin/vscsisad
 # nvsetenv is just a wrapper to nvram
 ln -s nvram.8.gz $RPM_BUILD_ROOT/%{_mandir}/man8/nvsetenv.8.gz
 
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(-,root,root)
 %{_sbindir}/nvsetenv
 %{_sbindir}/nvram
 %{_sbindir}/snap
@@ -120,11 +140,42 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/ls-vscsi.8*
 %doc README COPYRIGHT Changelog
 
-%post
-
-%preun
 
 %changelog
+* Wed Mar 12 2014 Karsten Hopp <karsten@redhat.com> 1.2.18-9
+- fix parsing of the value supplied for the -s option
+- Resolves: #1074629
+- fix wrong check of valid_platform() return value
+- Resolves: #1074635
+
+* Mon Mar 10 2014 Karsten Hopp <karsten@redhat.com> 1.2.18-8
+- update display message when Power System FW entitlement expires
+- Resolves: rhbz 1071555
+
+* Mon Feb 17 2014 Jaromir Capik <jcapik@redhat.com> - 1.2.18-7
+- drmgr: Fixing addition of device nodes (#1064220)
+- sys_ident: Adding support for P8 Systems (#1064484)
+- Resolves: rhbz#1064220, rhbz#1064484
+
+* Mon Feb 10 2014 Jaromir Capik <jcapik@redhat.com> - 1.2.18-6
+- drmgr: Fixing allocation failures & race when removing adapter (#1061179)
+- drmgr: Fixing return code when running with --capabilities (#1061092)
+- Fixing bogus date in the changelog
+- Cleaning the spec
+- Resolves: rhbz#1061179, rhbz#1061092
+
+* Thu Jan 16 2014 Filip Kocina <fkocina@redhat.com> - 1.2.18-5
+- Resolves: #1054031 - snap command get hung. No response
+
+* Tue Jan 14 2014 Filip Kocina <fkocina@redhat.com> - 1.2.18-4
+- Resolves: #1043455 && #1039473 - nvram tool fails to decompress the data && ofpathname in RHEL7 doesn't handle virtio-blk disks
+
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.2.18-3
+- Mass rebuild 2013-12-27
+
+* Thu Nov 28 2013 Filip Kocina <fkocina@redhat.com> - 1.2.18-2
+- Resolves: #1030236 - update FW entitlement message terminology
+
 * Wed Sep 25 2013 Filip Kocina <fkocina@redhat.com> - 1.2.18-1
 - Resolves: #1011038 - updated to latest upstream 1.2.18
 
@@ -171,7 +222,7 @@ rm -rf $RPM_BUILD_ROOT
 - updated to latest upstream 1.2.11
 -fixes #749892 - powerpc-utils spec file missing dependency
 
-* Mon Aug 05 2011 Jiri Skala <jskala@redhat.com> - 1.2.10-1
+* Fri Aug 05 2011 Jiri Skala <jskala@redhat.com> - 1.2.10-1
 - updated to latest upstream 1.2.10
 
 * Wed Feb 09 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.2.6-2

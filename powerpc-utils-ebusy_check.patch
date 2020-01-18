@@ -1,0 +1,105 @@
+---
+ src/drmgr/common_ofdt.c |    8 +++++++
+ src/drmgr/common_pci.c  |   49 ++++++++++++++++++++++--------------------------
+ 2 files changed, 31 insertions(+), 26 deletions(-)
+
+Index: powerpc-utils-1.2.18/src/drmgr/common_pci.c
+===================================================================
+--- powerpc-utils-1.2.18.orig/src/drmgr/common_pci.c	2013-09-10 10:39:51.000000000 -0500
++++ powerpc-utils-1.2.18/src/drmgr/common_pci.c	2014-02-07 07:59:38.000000000 -0600
+@@ -1151,42 +1151,39 @@
+ int
+ dlpar_io_kernel_op(char *interface_file, char *drc_name)
+ {
+-	int rc = 0, len, val = 0;
++	int rc = 0, len;
+ 	FILE *file;
+ 
++	len = strlen(drc_name);
+ 	say(DEBUG, "performing kernel op for %s, file is %s\n", drc_name,
+ 	    interface_file);
+ 
+-    	file = fopen(interface_file, "r+");
+-    	if (file == NULL) {
+-		say(ERROR, "failed to open %s: %s\n", interface_file,
+-		    strerror(errno));
+-		return -ENODEV;
+-    	}
++	do {
++		errno = 0;
+ 
+-	len = strlen(drc_name);
+-    	rc = fwrite(drc_name, 1, len, file);
+-    	if (rc != len) {
+-		say(ERROR, "write to interface file %s failed, rc = %d "
+-		    "len = %d.\n%s\n", interface_file, rc, len,
+-		    strerror(errno));
+-		fclose(file);
+-        	return -errno;
+-	}
++    		file = fopen(interface_file, "r+");
++    		if (file == NULL) {
++			say(ERROR, "failed to open %s: %s\n", interface_file,
++			    strerror(errno));
++			return -ENODEV;
++    		}
+ 
+-	rewind(file);
+-	rc = fscanf(file, "%i", &val);
+-	if (rc != 1) {
+-		say(ERROR, "scan of interface file %s failed, rc = %d, should i"
+-		    "be 1\n%s\n", interface_file, rc, strerror(errno));
++    		rc = fwrite(drc_name, 1, len, file);
+ 		fclose(file);
+-		return -errno;
+-	}
+ 
+-	rc = val;
+-	fclose(file);
++		sleep(1);
++		if (drmgr_timed_out())
++			return -1;
++	} while (errno == EBUSY);
++
++ 	if (errno || (rc != len)) {
++		say(ERROR, "kernel I/O op failed, rc = %d len = %d.\n%s\n",
++		    rc, len, strerror(errno));
++
++		return errno ? errno : rc;
++	}
+ 
+-	return rc;
++	return 0;
+ }
+ 
+ void
+Index: powerpc-utils-1.2.18/src/drmgr/common_ofdt.c
+===================================================================
+--- powerpc-utils-1.2.18.orig/src/drmgr/common_ofdt.c	2013-09-10 10:39:51.000000000 -0500
++++ powerpc-utils-1.2.18/src/drmgr/common_ofdt.c	2014-02-07 08:05:17.000000000 -0600
+@@ -9,6 +9,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <dirent.h>
++#include <sys/stat.h>
+ #include "dr.h"
+ #include "ofdt.h"
+ 
+@@ -71,10 +72,17 @@
+ static int
+ get_drc_prop_grp(char *full_path, struct drc_prop_grp *group)
+ {
++	struct stat sbuf;
++	char fname[DR_PATH_MAX];
+ 	int rc;
+ 
+ 	memset(group, 0, sizeof(*group));
+ 
++	sprintf(fname, "%s/%s", full_path, "ibm,drc-names");
++	rc = stat(fname, &sbuf);
++	if (rc)
++		return rc;
++
+ 	rc = get_of_list_prop(full_path, "ibm,drc-names", &group->drc_names);
+ 	if (rc)
+ 		return rc;
